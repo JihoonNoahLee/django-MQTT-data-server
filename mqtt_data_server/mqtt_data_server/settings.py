@@ -52,7 +52,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'mqtt_client',
+    'data_server',
 ]
 
 MIDDLEWARE = [
