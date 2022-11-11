@@ -1,32 +1,46 @@
 import paho.mqtt.client as mqtt
+from threading import Thread
 import json
 
-# The callback for when the client receives a CONNACK response from the broker.
-def on_connect(client, userdata, flags, rc):
-    print("Connected with result code " + str(rc))
-    client.subscribe("test")
+class MqttThread(Thread):
+    def __init__(self, broker_ip, broker_port, timeout, topics):
+        super(MqttThread, self).__init__()
+        self.client = mqtt.Client(client_id="data_server")
+        self.broker_ip = broker_ip
+        self.broker_port = broker_port
+        self.timeout = timeout
+        self.topics = topics
 
-def on_subscribe(client, userdata, mid, granted_qos):
-    print("Subscribed: " + str(mid) + " "+str(granted_qos))
+    # run method override from Thread class
+    def run(self):
+        self.connect_to_broker()
 
-# The callback for when a PUBLISH message is received from the broker.
-def on_message(client, userdata, msg):
-    print("Message received")
-    from .models import Data
-    print(msg.topic + " " + str(msg.payload))
-    message_dict = json.loads(msg.payload)
+    def connect_to_broker(self):
+        self.client.on_connect = self.on_connect
+        self.client.on_subscribe = self.on_subscribe
+        self.client.on_message = self.on_message
+        while True:
+            try:
+                self.client.connect(self.broker_ip, self.broker_port, self.timeout)
+                self.client.loop_forever()
+            except Exception as e:
+                print("Connection to broker failed: " + str(e))
+                continue
 
-    if (message_dict.get("temperature") and message_dict.get("humidity")):
-        data = Data(temperature=message_dict["temperature"], humidity=message_dict["humidity"])
-        data.save()
+    def on_connect(self, client, userdata, flags, rc):
+        print("Connected with result code " + str(rc))
+        for topic in self.topics:
+            client.subscribe(topic)
 
-#define Client
-client = mqtt.Client(client_id="data_server")
+    def on_subscribe(self, client, userdata, mid, granted_qos):
+        print("Subscribed: " + str(mid) + " "+str(granted_qos))
 
-#adding callbacks to client
-client.on_connect = on_connect
-client.on_subscribe = on_subscribe
-client.on_message = on_message
+    def on_message(self, client, userdata, msg):
+        print("Message received")
+        from .models import Data
+        print(msg.topic + " " + str(msg.payload))
+        message_dict = json.loads(msg.payload)
 
-# client.connect(host="192.168.0.11", port=1883)
-print("hello django!")
+        if (message_dict.get("temperature") and message_dict.get("humidity")):
+            data = Data(temperature=message_dict["temperature"], humidity=message_dict["humidity"])
+            data.save()
