@@ -22,10 +22,11 @@ class MqttThread(Thread):
         while True:
             try:
                 self.client.connect(self.broker_ip, self.broker_port, self.timeout)
-                self.client.loop_forever()
+                break
             except Exception as e:
                 print("Connection to broker failed: " + str(e))
                 continue
+        self.client.loop_forever()
 
     def on_connect(self, client, userdata, flags, rc):
         print("Connected with result code " + str(rc))
