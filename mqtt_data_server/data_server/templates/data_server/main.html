@@ -1,0 +1,109 @@
+<div id="container">
+ 
+    <script src="https://code.highcharts.com/stock/highstock.js"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script>
+  
+      function setChart() {
+        Highcharts.setOption({
+          global: {
+            useUTC: false
+          }
+        });
+      };
+  
+      $.ajax({
+        url: "{% url 'data_server:Data_api' %}",
+        dataType: 'json',
+        success: function (data) {
+  
+          Highcharts.setOptions({
+            global: {
+              useUTC: false
+            }
+          });
+  
+          Highcharts.stockChart("container", {
+  
+            chart: {
+              height: 500
+            },
+  
+            title: { 
+              text: '온, 습도 정보' 
+            }, 
+  
+            rangeSelector: {
+              selected: 5,
+              inputEnabled: false
+            },
+  
+            xAxis: {
+              type: 'datetime',
+              labels:{
+                formatter: function(){
+                  return Highcharts.dateFormat('%y.%m.%d.%H.%M.%S', this.value);
+                },
+                step: 3
+              }
+            },
+  
+            yAxis: {
+              labels: {
+                format: '{value}p',
+                style: {
+                  color: 'rgba(0,0,0,.6)',
+                },
+                x: 30,
+              },
+              opposite: false,
+              tickInterval: 50,   
+            },
+  
+            tooltip: {
+              xDateFormat: '%Y-%m-%d',
+              split: true
+            },
+  
+            series: [{
+                name: '온도',          
+                data: data.temperature,
+                color: 'rgba(0,200,0,.6)',
+                lineWidth: 2
+            }, 
+            {
+                name: '습도',          
+                data: data.humidity,
+                lineWidth: 3
+            }],
+  
+            legend: {
+              enabled: true, 
+              align: 'left',
+              verticalAlign: 'top',
+              floating: true,
+              x: 30,
+              y: 70
+            },
+            
+            responsive: {
+              rules: [{
+                condition: {
+                  maxWidth: 600
+                },
+                chartOptions: {
+                  chart: {
+                    height: 300
+                  },
+                  navigator: {
+                    enabled: false
+                  }
+                }
+              }]
+            }
+          });
+        }
+      });
+  
+    </script>
+  </div>
