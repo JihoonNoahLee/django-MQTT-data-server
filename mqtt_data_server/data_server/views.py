@@ -17,7 +17,7 @@ class DataAPIView(APIView):
         temperature_list = []
         humidity_list = []
         for datas in Database:
-            time_tuple = strptime(str(datas.date), '%Y-%m-%d %H:%M:%S%z')
+            time_tuple = strptime(str(datas.date), '%Y-%m-%d %H:%M:%S.%f%z')
             utc_now = mktime(time_tuple) *1000
             temperature_list.append([utc_now, datas.temperature])
             humidity_list.append([utc_now, datas.humidity])

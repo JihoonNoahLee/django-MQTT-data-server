@@ -1,5 +1,6 @@
 import paho.mqtt.client as mqtt
 from threading import Thread
+from time import sleep
 import json
 
 class MqttThread(Thread):
@@ -25,6 +26,7 @@ class MqttThread(Thread):
                 break
             except Exception as e:
                 print("Connection to broker failed: " + str(e))
+                sleep(3)
                 continue
         self.client.loop_forever()
 
